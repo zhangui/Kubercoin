@@ -7,6 +7,7 @@ contract Matchmaker {
     uint private verifierTimeInterval = 300;
     uint private lastCheck;
 
+    event MidContractTransfer(address payer, uint amount);
     event ContractEnded(address payer, uint amount);
     
     constructor () {
@@ -105,21 +106,34 @@ contract Matchmaker {
             msg.sender == data.currentClient || msg.sender == data.owner,
             "You do not have access"
         );
-        if (data.currentClient == msg.sender) {
+        if (data.currentClient == msg.sender) { //client is done with task
             uint elapsedTime = now - data.startTime;
             data.inUse = false;
             makeTransfer(owner, msg.sender, (elapsedTime / 60) * data.costPerMinute);
-        } else if (data.owner == msg.sender) {
-            if (!data.inUse) {
-                emptySlots.push(position);
+            imageList.emptySlots.push(position);
+
+        } else if (data.owner == msg.sender) { //miner decides to end contract
+            if (!data.inUse) { // task is complete
+                imageList.emptySlots.push(position);
+                makeTransfer(owner, msg.sender, (elapsedTime / 60) * data.costPerMinute);
             } else {
-                // include penalty
+                //include penalty
+                punishMiner(data.currentClient, data.owner, (elapsedTime / 60) * data.costPerMinute);
+                removeImage(position);
+                assignImage(owner); //since miner ended, need to give client a new image to work with
             }
         }
     }
 
-    function makeTransfer(payer, receiver, amount) {
+    function makeTransfer(address payer, address receiver, uint amount) {
         emit ContractEnded(payer, amount);
-        receiver.transfer(amount);
+        payable(receiver).transfer(amount);
     }
+
+    function punishMiner(address payer, address miner, uint transferAmount) {
+      reduceRating(miner);
+      emit MidContractTransfer(payer, amount);
+      payable(miner).transfer(transferAmount);
+    }
+
 }
