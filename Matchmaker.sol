@@ -9,6 +9,7 @@ contract Matchmaker {
 
     event MidContractTransfer(address payer, uint amount);
     event ContractEnded(address payer, uint amount);
+    event MinerListUpdate(address UpdatedMiner);
     
     constructor () {
         lastCheck = now
@@ -110,15 +111,22 @@ contract Matchmaker {
             uint elapsedTime = now - data.startTime;
             data.inUse = false;
             makeTransfer(owner, msg.sender, (elapsedTime / 60) * data.costPerMinute);
+            emit ContractEnded(owner, msg.sender);
             imageList.emptySlots.push(position);
-
+            emit MinerListUpdate(data.owner);
         } else if (data.owner == msg.sender) { //miner decides to end contract
             if (!data.inUse) { // task is complete
                 imageList.emptySlots.push(position);
+                emit MinerListUpdate(data.owner);
                 makeTransfer(owner, msg.sender, (elapsedTime / 60) * data.costPerMinute);
+                emit ContractEnded(owner, msg.sender);
             } else {
-                //include penalty
-                punishMiner(data.currentClient, data.owner, (elapsedTime / 60) * data.costPerMinute);
+                //penalize miner and move funds for work done.
+                punishMiner(data.currentClient, data.owner);
+                emit MidContractTransfer(data.currentClient, (elapsedTime / 60) * data.costPerMinute);
+                makeTransfer(data.currentClient, data.owner, (elapsedTime / 60) * data.costPerMinute);
+
+                //TODO: make sure removeImage and assignImage calls the MinterListUpdate event
                 removeImage(position);
                 assignImage(owner); //since miner ended, need to give client a new image to work with
             }
@@ -126,14 +134,15 @@ contract Matchmaker {
     }
 
     function makeTransfer(address payer, address receiver, uint amount) {
-        emit ContractEnded(payer, amount);
         payable(receiver).transfer(amount);
     }
 
-    function punishMiner(address payer, address miner, uint transferAmount) {
+    //can probably remove the below 2 functions in the future, but might add additional functionality
+    function punishMiner(address miner) {
       reduceRating(miner);
-      emit MidContractTransfer(payer, amount);
-      payable(miner).transfer(transferAmount);
     }
 
+    function punishPing(address pinger) {
+        reduceRating(pinger);
+    }
 }
