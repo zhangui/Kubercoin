@@ -16,6 +16,7 @@ contract Matchmaker {
     struct ImageSet {
         ImageData[] images;
         uint[] emptySlots;
+        bool locked;
     }
 
     struct ImageData {
@@ -87,13 +88,13 @@ contract Matchmaker {
     }
 
     function addMiner() {
-        if (imageStruct.emptySlots.length == 0) {
-            imageStruct.images.push(msg.sender);
+        if (imageList.emptySlots.length == 0) {
+            imageList.images.push(msg.sender);
         } else {
             // check for race condition mutex lock maybe
             //make into queue
-            uint freeSlot = imageStruct.emptySlots[0]
-            imageStruct.images[]
+            uint freeSlot = imageList.emptySlots[0]
+            imageList.images[]
         }
     }
 
@@ -122,4 +123,26 @@ contract Matchmaker {
         emit ContractEnded(payer, amount);
         receiver.transfer(amount);
     }
+
+    // instead of addMiner
+    function addImage(owner, costPerMinute, maxTime, startTime, inUse, currentClient) {
+        ImageData newImage = ImageData(owner, costPerMinute, maxTime, startTime, inUse, currentClient);
+        if (imageList.emptySlots.length == 0) {
+            imageList.images.push(newImage);
+        } else {
+            // need to test whether this works as a mutex lock
+            while(!imageList.locked)
+            imageList.locked = true;
+            emptySlot = imageList.emptySlots.pop()
+            imageList.images[emptySlot] = newImage
+            imageList.locked = false;
+        }
+    }
+
+    // instead of removeMiner, just take in index and remove it
+    function removeImage(i) {
+        imageList.images.splice[i] = 0
+        imageList.emptySlots.push(i)
+    }
+
 }
