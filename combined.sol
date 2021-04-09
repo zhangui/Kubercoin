@@ -207,7 +207,12 @@ contract Matchmaker {
     uint private verifierTimeInterval = 300;
     uint private lastCheck;
 
-    event ContractEnded(address payer, uint amount);
+    //Justin's code from pingVerify branch
+    uint randNonce = 0;
+
+    event MidContractTransfer(address payer, uint256 amount);
+    event ContractEnded(address payer, uint256 amount);
+    event MinerListUpdate(address UpdatedMiner);
 
     constructor () public {
         heap = new PublicHeap();
@@ -425,6 +430,7 @@ contract Matchmaker {
             );
             emit ContractEnded(owner, msg.sender);
             imageList.emptySlots.push(position);
+            updateRating(data.owner, true);
             emit MinerListUpdate(data.owner);
         } else if (data.owner == msg.sender) {
             //miner decides to end contract
@@ -438,6 +444,7 @@ contract Matchmaker {
                     (elapsedTime / 60) * data.costPerMinute
                 );
                 emit ContractEnded(owner, msg.sender);
+                updateRating(data.owner, true);
             } else {
                 //penalize miner and move funds for work done.
                 punishMiner(data.currentClient, data.owner);
@@ -468,11 +475,11 @@ contract Matchmaker {
 
     //can probably remove the below 2 functions in the future, but might add additional functionality
     function punishMiner(address miner) public {
-        reduceRating(miner);
+        updateRating(miner, false);
     }
 
     function punishPing(address pinger) public {
-        reduceRating(pinger);
+        updateRating(pinger, false);
     }
 
     struct Rating {
