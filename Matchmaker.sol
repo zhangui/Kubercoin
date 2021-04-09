@@ -8,9 +8,9 @@ contract Matchmaker {
     uint private lastCheck;
 
     event ContractEnded(address payer, uint amount);
-    
-    constructor () {
-        lastCheck = now
+
+    constructor () public {
+        lastCheck = now;
     }
 
     struct ImageSet {
@@ -48,22 +48,22 @@ contract Matchmaker {
 
     mapping(address => Verifiers) pendingVerifies;
 
-    function checkVerifies() {
+    function checkVerifies() public {
 
     }
 
-    function checkForExpiriations() {
+    function checkForExpiriations() public {
         if (now - lastCheck >= verifierTimeInterval) {
-            checkVerifies()
+            checkVerifies();
         }
     }
 
-    function reportFailure(address minerAddress) {
+    function reportFailure(address minerAddress) public {
 
     }
 
-    function verify(address addressToBeVerified, bool active) {
-        address[] addressList = pendingVerifies[addressToBeVerified].addressList
+    function verify(address addressToBeVerified, bool active) public {
+        address[] memory addressList = pendingVerifies[addressToBeVerified].addressList;
         for (uint i = 0; i < addressList.length; i++) {
             if (msg.sender == addressList[i]) {
                 if (active) {
@@ -75,74 +75,25 @@ contract Matchmaker {
         }
     }
 
-    function getPings() returns address[] {
-        return currentPings[msg.sender];
-    }
-
-    // function addClient() {
-    //     clients.push(msg.sender);
-    // }
-
-    function removeMiner() {
-
-    }
-
-    function addMiner() {
-        if (imageList.emptySlots.length == 0) {
-            imageList.images.push(msg.sender);
-        } else {
-            // check for race condition mutex lock maybe
-            //make into queue
-            uint freeSlot = imageList.emptySlots[0]
-            imageList.images[]
-        }
-    }
-
-
-
-    function closeConnection(uint position, address owner) {
-        ImageData data = imageList.images[position];
-        require(
-            msg.sender == data.currentClient || msg.sender == data.owner,
-            "You do not have access"
-        );
-        if (data.currentClient == msg.sender) {
-            uint elapsedTime = now - data.startTime;
-            data.inUse = false;
-            makeTransfer(owner, msg.sender, (elapsedTime / 60) * data.costPerMinute);
-        } else if (data.owner == msg.sender) {
-            if (!data.inUse) {
-                emptySlots.push(position);
-            } else {
-                // include penalty
-            }
-        }
-    }
-
-    function makeTransfer(payer, receiver, amount) {
-        emit ContractEnded(payer, amount);
-        receiver.transfer(amount);
-    }
-
     // instead of addMiner
-    function addImage(owner, costPerMinute, maxTime, startTime, inUse, currentClient) {
-        ImageData newImage = ImageData(owner, costPerMinute, maxTime, startTime, inUse, currentClient);
+    function addImage(address owner, uint costPerMinute, uint maxTime, uint startTime, bool inUse, address currentClient) public {
+        ImageData memory newImage = ImageData(owner, costPerMinute, maxTime, startTime, inUse, currentClient);
         if (imageList.emptySlots.length == 0) {
             imageList.images.push(newImage);
         } else {
             // need to test whether this works as a mutex lock
             while(!imageList.locked)
-            imageList.locked = true;
-            emptySlot = imageList.emptySlots.pop()
-            imageList.images[emptySlot] = newImage
+                imageList.locked = true;
+            uint emptySlot = imageList.emptySlots[imageList.emptySlots.length - 1];
+            imageList.emptySlots.pop();
+            imageList.images[emptySlot] = newImage;
             imageList.locked = false;
         }
     }
 
     // instead of removeMiner, just take in index and remove it
-    function removeImage(i) {
-        imageList.images.splice[i] = 0
-        imageList.emptySlots.push(i)
+    function removeImage(uint i) public {
+        imageList.emptySlots.push(i);
     }
 
 }
