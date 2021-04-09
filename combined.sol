@@ -414,7 +414,7 @@ contract Matchmaker {
                 msg.sender,
                 (elapsedTime / 60) * data.costPerMinute
             );
-            emit ContractEnded(owner, msg.sender);
+            emit ContractEnded(owner, (elapsedTime / 60) * data.costPerMinute);
             imageList.emptySlots.push(position);
             updateRating(data.owner, true);
             emit MinerListUpdate(data.owner);
@@ -429,11 +429,11 @@ contract Matchmaker {
                     msg.sender,
                     (elapsedTime / 60) * data.costPerMinute
                 );
-                emit ContractEnded(owner, msg.sender);
+                emit ContractEnded(owner, (elapsedTime / 60) * data.costPerMinute);
                 updateRating(data.owner, true);
             } else {
                 //penalize miner and move funds for work done.
-                punishMiner(data.currentClient, data.owner);
+                punishMiner(data.owner);
                 emit MidContractTransfer(
                     data.currentClient,
                     (elapsedTime / 60) * data.costPerMinute
@@ -456,7 +456,7 @@ contract Matchmaker {
         address receiver,
         uint256 amount
     ) public {
-        receiver.transfer(amount);
+        payable(receiver).transfer(amount);
     }
 
     //can probably remove the below 2 functions in the future, but might add additional functionality
