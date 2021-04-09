@@ -1,4 +1,4 @@
-pragma solidity 0.7.4;
+pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 /**
@@ -216,7 +216,7 @@ contract Matchmaker {
 
     constructor () public {
         heap = new PublicHeap();
-        lastCheck = now;
+        lastCheck = block.timestamp;
     }
 
     struct ImageSet {
@@ -278,7 +278,7 @@ contract Matchmaker {
     function random() internal returns(uint) {
        // increase nonce
        randNonce++;  
-       return uint(keccak256(abi.encodePacked(now, 
+       return uint(keccak256(abi.encodePacked(block.timestamp, 
                                               msg.sender, 
                                               randNonce))) % 100;
      }
