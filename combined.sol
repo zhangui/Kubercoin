@@ -231,6 +231,7 @@ contract Matchmaker {
         uint maxTime;
         uint startTime;
         bool inUse;
+        string ip;
         address currentClient;
     }
 
@@ -254,8 +255,8 @@ contract Matchmaker {
     mapping(address => Verifiers) pendingVerifies;
 
     // instead of addMiner
-    function addImage(address owner, uint costPerMinute, uint maxTime, uint startTime, bool inUse, address currentClient) public {
-        ImageData memory newImage = ImageData(owner, costPerMinute, maxTime, startTime, inUse, currentClient);
+    function addImage(address owner, uint costPerMinute, uint maxTime, uint startTime, bool inUse, string memory ip, address currentClient) public {
+        ImageData memory newImage = ImageData(owner, costPerMinute, maxTime, startTime, inUse, ip, currentClient);
         if (imageList.emptySlots.length == 0) {
             imageList.images.push(newImage);
         } else {
@@ -502,14 +503,40 @@ contract Matchmaker {
     }
     
     // Test Functions
-    function getRating() public view returns (int128) {
-        Heap.Node memory node = heap.extractMax();
-        // Rating memory rating = ratingMap[node.sender];
-        return node.priority;
-    }
-    
-    // Test Functions
     function respond() external view returns (int128) {
         return 145;
+    }
+    
+    function getAvailableImage() public returns (string memory) {
+        // Heap.Node memory node = heap.extractMax();
+        // int128 id = node.id;
+        
+        // imageList.addMiner
+        return assignImage(msg.sender);
+    }
+    
+    function assignImage(address client) private returns (string memory) {
+        uint unvetted = 0;
+        for (uint i = 0; i < imageList.emptySlots.length; i++) {
+            uint slot = imageList.emptySlots[i];
+            ImageData memory imageData = imageList.images[slot];
+            address owner = imageData.owner;
+            if (minerRatings[owner] > 600) {
+                imageData.currentClient = client;
+                imageData.inUse = true;
+                return imageData.ip;
+            } else if (minerRatings[owner] > 400) {
+                unvetted = slot;
+            }
+        }
+        uint slot = imageList.emptySlots[unvetted];
+        ImageData memory imageData = imageList.images[slot];
+        if (imageData.inUse) {
+            return "";
+        }
+        imageData.currentClient = client;
+        imageData.inUse = true;
+        return imageData.ip;
+        
     }
 }
