@@ -241,8 +241,9 @@ contract Matchmaker {
         // 0 false
         // 1 true
         // 2 is undecided
-        address[] addressList;
+        address[2] addressList;
         mapping(address => uint) verifications;
+        mapping(address => uint) lastVerified;
     }
 
     mapping(address => uint) minerRatings;
@@ -380,7 +381,7 @@ contract Matchmaker {
             ImageData memory image = imageList.images[i];
             if (image.currentClient == client) {
                 punishMiner(image.owner) ;
-                removeImage(image);
+                removeImage(i);
             } 
         }
     }
