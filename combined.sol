@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 
 /**
@@ -67,49 +67,49 @@ library Heap{ // default max-heap
     if(self.nodes.length == 0) self.nodes.push(Node(0,0));
   }
 
-  function insert(Data storage self, int128 priority) internal returns(Node){//√
+  function insert(Data storage self, int128 priority) internal returns(Node memory){//√
     if(self.nodes.length == 0){ init(self); }// test on-the-fly-init
     self.idCount++;
-    self.nodes.length++;
+    //self.nodes.length++;
     Node memory n = Node(self.idCount, priority);
     _bubbleUp(self, n, self.nodes.length-1);
     return n;
   }
-  function extractMax(Data storage self) internal returns(Node){//√
+  function extractMax(Data storage self) internal returns(Node memory){//√
     return _extract(self, ROOT_INDEX);
   }
-  function extractById(Data storage self, int128 id) internal returns(Node){//√
+  function extractById(Data storage self, int128 id) internal returns(Node memory){//√
     return _extract(self, self.indices[id]);
   }
 
   //view
-  function dump(Data storage self) internal view returns(Node[]){
+  function dump(Data storage self) internal view returns(Node[] memory){
   //note: Empty set will return `[Node(0,0)]`. uninitialized will return `[]`.
     return self.nodes;
   }
-  function getById(Data storage self, int128 id) internal view returns(Node){
+  function getById(Data storage self, int128 id) internal view returns(Node memory){
     return getByIndex(self, self.indices[id]);//test that all these return the emptyNode
   }
-  function getByIndex(Data storage self, uint i) internal view returns(Node){
+  function getByIndex(Data storage self, uint i) internal view returns(Node memory){
     return self.nodes.length > i ? self.nodes[i] : Node(0,0);
   }
-  function getMax(Data storage self) internal view returns(Node){
+  function getMax(Data storage self) internal view returns(Node memory){
     return getByIndex(self, ROOT_INDEX);
   }
   function size(Data storage self) internal view returns(uint){
     return self.nodes.length > 0 ? self.nodes.length-1 : 0;
   }
-  function isNode(Node n) internal pure returns(bool){ return n.id > 0; }
+  function isNode(Node memory n) internal pure returns(bool){ return n.id > 0; }
 
   //private
-  function _extract(Data storage self, uint i) private returns(Node){//√
+  function _extract(Data storage self, uint i) private returns(Node memory){//√
     if(self.nodes.length <= i || i <= 0){ return Node(0,0); }
 
     Node memory extractedNode = self.nodes[i];
     delete self.indices[extractedNode.id];
 
     Node memory tailNode = self.nodes[self.nodes.length-1];
-    self.nodes.length--;
+    //self.nodes.length--;
 
     if(i < self.nodes.length){ // if extracted node was not tail
       _bubbleUp(self, tailNode, i);
@@ -159,31 +159,31 @@ contract PublicHeap{
 
   constructor() public { data.init(); }
 
-  function heapify(int128[] priorities) public {
+  function heapify(int128[] memory priorities) public {
     for(uint i ; i < priorities.length ; i++){
       data.insert(priorities[i]);
     }
   }
-  function insert(int128 priority) public returns(Heap.Node){
+  function insert(int128 priority) public returns(Heap.Node memory){
     return data.insert(priority);
   }
-  function extractMax() public returns(Heap.Node){
+  function extractMax() public returns(Heap.Node memory){
     return data.extractMax();
   }
-  function extractById(int128 id) public returns(Heap.Node){
+  function extractById(int128 id) public returns(Heap.Node memory){
     return data.extractById(id);
   }
   //view
-  function dump() public view returns(Heap.Node[]){
+  function dump() public view returns(Heap.Node[] memory){
     return data.dump();
   }
-  function getMax() public view returns(Heap.Node){
+  function getMax() public view returns(Heap.Node memory){
     return data.getMax();
   }
-  function getById(int128 id) public view returns(Heap.Node){
+  function getById(int128 id) public view returns(Heap.Node memory){
     return data.getById(id);
   }
-  function getByIndex(uint i) public view returns(Heap.Node){
+  function getByIndex(uint i) public view returns(Heap.Node memory){
     return data.getByIndex(i);
   }
   function size() public view returns(uint){
@@ -250,22 +250,7 @@ contract Matchmaker {
 
     mapping(address => string) publicKeys;
 
-
-
     mapping(address => Verifiers) pendingVerifies;
-
-    function verify(address addressToBeVerified, bool active) public {
-        address[] memory addressList = pendingVerifies[addressToBeVerified].addressList;
-        for (uint i = 0; i < addressList.length; i++) {
-            if (msg.sender == addressList[i]) {
-                if (active) {
-                    pendingVerifies[addressToBeVerified].verifications[msg.sender] = 1;
-                } else {
-                    pendingVerifies[addressToBeVerified].verifications[msg.sender] = 0;
-                }
-            }
-        }
-    }
 
     // instead of addMiner
     function addImage(address owner, uint costPerMinute, uint maxTime, uint startTime, bool inUse, address currentClient) public {
@@ -460,7 +445,7 @@ contract Matchmaker {
 
                 //TODO: make sure removeImage and assignImage calls the MinterListUpdate event
                 removeImage(position);
-                assignImage(owner); //since miner ended, need to give client a new image to work with
+                //assignImage(owner); //since miner ended, need to give client a new image to work with
             }
         }
     }
@@ -487,7 +472,7 @@ contract Matchmaker {
         int128 score;
     }
 
-    function calculateNewScore(Rating rating, bool success) returns (int128) {
+    function calculateNewScore(Rating memory rating, bool success) public returns (int128) {
         // 1000 + (400 * (successes - losses)) / (successes + losses)
         return rating.score * int128(9);
     }
