@@ -217,6 +217,7 @@ contract Matchmaker {
     constructor () public {
         heap = new PublicHeap();
         lastCheck = block.timestamp;
+        // imageList = new ImageSet();
     }
 
     struct ImageSet {
@@ -236,6 +237,10 @@ contract Matchmaker {
     }
 
     ImageSet private imageList;
+    ImageData[] images;
+    uint[] emptySlots;
+    bool locked;
+    
     address[] private clients;
 
     struct Verifiers {
@@ -253,21 +258,28 @@ contract Matchmaker {
     mapping(address => string) publicKeys;
 
     mapping(address => Verifiers) pendingVerifies;
+    mapping(address => uint[]) imageOwnership;
 
     // instead of addMiner
     function addImage(address owner, uint costPerMinute, uint maxTime, uint startTime, bool inUse, string memory ip, address currentClient) public {
         ImageData memory newImage = ImageData(owner, costPerMinute, maxTime, startTime, inUse, ip, currentClient);
         if (imageList.emptySlots.length == 0) {
-            imageList.images.push(newImage);
+            imageOwnership[owner].push(images.length);
+            images.push(newImage);
         } else {
             // need to test whether this works as a mutex lock
             while(!imageList.locked)
                 imageList.locked = true;
             uint emptySlot = imageList.emptySlots[imageList.emptySlots.length - 1];
+            imageOwnership[owner].push(images.length);
             imageList.emptySlots.pop();
             imageList.images[emptySlot] = newImage;
             imageList.locked = false;
         }
+    }
+    
+    function getImages() public view returns (uint[] memory) {
+        return imageOwnership[msg.sender];
     }
 
     // instead of removeMiner, just take in index and remove it
@@ -481,6 +493,7 @@ contract Matchmaker {
 
 
     mapping(address => Rating) ratingMap;
+    mapping(int128 => uint128) heapToImage;
     
 
     function updateRating(address owner, bool reward) public {
@@ -537,6 +550,13 @@ contract Matchmaker {
         imageData.currentClient = client;
         imageData.inUse = true;
         return imageData.ip;
+        
+    }
+    
+    function test1() public {
+        addImage(msg.sender, 2, 10000, block.timestamp, false, "i", msg.sender);
+        
+        
         
     }
 }
