@@ -368,19 +368,20 @@ contract Kubercoin {
         uint minerOnePosition = random() % images.length;
         uint minerTwoPosition = random() % images.length; 
 
-        // check that positions are valid
-        while (!minerExists(minerOnePosition) || !minerExists(minerTwoPosition)) {
+        // check that positions are valid and unique
+        while(!images[minerOnePosition].inUse) {
             minerOnePosition = random() % images.length;
+        }
+        
+        while(!images[minerTwoPosition].inUse || minerTwoPosition == minerOnePosition) {
             minerTwoPosition = random() % images.length;
         }
+        
 
         // create new verifiers struct and add two miners
         // Verifiers storage pingers = Verifiers([minerOne, minerTwo]);
         address minerOne = images[minerOnePosition].owner;
         address minerTwo = images[minerTwoPosition].owner;
-        // pingers.addressList.push(minerOne);
-        // pingers.addressList.push(minerTwo);
-        // pingers = Verifiers([minerOne, minerTwo]);
         pendingVerifies[client] = Verifiers([minerOne, minerTwo]);
 
         //add client to current pings mapping of both miners
@@ -388,6 +389,7 @@ contract Kubercoin {
         currentPings[minerTwo].push(client);
 
     }
+    
     //check that the miner has written the ping results to the block chain  
     function checkVerifies() public{
         //need to check every client's verifiers
