@@ -412,7 +412,7 @@ contract Kubercoin {
         }
     }
 
-    function closeConnection(uint256 position, address owner) public {
+    function closeConnection(uint256 position) public {
         ImageData storage data = imageList.images[position];
         require(
             msg.sender == data.currentClient || msg.sender == data.owner,
@@ -423,11 +423,11 @@ contract Kubercoin {
             //client is done with task
             data.inUse = false;
             makeTransfer(
-                owner,
-                msg.sender,
+                data.currentClient,
+                data.owner,
                 (elapsedTime / 60) * data.costPerMinute
             );
-            emit ContractEnded(owner, (elapsedTime / 60) * data.costPerMinute);
+            emit ContractEnded(data.currentClient, (elapsedTime / 60) * data.costPerMinute);
             imageList.emptySlots.push(position);
             updateRating(data.owner, true);
             emit MinerListUpdate(data.owner);
@@ -438,11 +438,11 @@ contract Kubercoin {
                 imageList.emptySlots.push(position);
                 emit MinerListUpdate(data.owner);
                 makeTransfer(
-                    owner,
-                    msg.sender,
+                    data.currentClient,
+                    data.owner,
                     (elapsedTime / 60) * data.costPerMinute
                 );
-                emit ContractEnded(owner, (elapsedTime / 60) * data.costPerMinute);
+                emit ContractEnded(data.currentClient, (elapsedTime / 60) * data.costPerMinute);
                 updateRating(data.owner, true);
             } else {
                 //penalize miner and move funds for work done.
@@ -459,7 +459,7 @@ contract Kubercoin {
 
                 //TODO: make sure removeImage and assignImage calls the MinterListUpdate event
                 removeImage(position);
-                assignImage(owner); //since miner ended, need to give client a new image to work with
+                assignImage(data.currentClient); //since miner ended, need to give client a new image to work with
             }
         }
     }
