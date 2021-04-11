@@ -343,7 +343,7 @@ contract Kubercoin {
 
     // instead of removeMiner, just take in index and remove it
     function removeImage(uint i) public {
-        imageList.emptySlots.push(i);
+        emptySlots.push(i);
     }
 
     // not secure but generates a semi random number,
@@ -359,8 +359,8 @@ contract Kubercoin {
     //check if image list contains a miner in the randomly 
 // generated position
     function minerExists(uint minerPosition) public returns (bool){
-        for (uint i = 0; i < imageList.emptySlots.length; i++) {
-            if (imageList.emptySlots[i] == minerPosition) {
+        for (uint i = 0; i < emptySlots.length; i++) {
+            if (emptySlots[i] == minerPosition) {
                 return false;
             }
         }
@@ -370,19 +370,19 @@ contract Kubercoin {
     //assign two random miners to ping image
     function assignPings (address client) public{
         // select two miners at random
-        uint minerOnePosition = random() % imageList.images.length;
-        uint minerTwoPosition = random() % imageList.images.length; 
+        uint minerOnePosition = random() % images.length;
+        uint minerTwoPosition = random() % images.length; 
 
         // check that positions are valid
         while (!minerExists(minerOnePosition) || !minerExists(minerTwoPosition)) {
-            minerOnePosition = random() % imageList.images.length;
-            minerTwoPosition = random() % imageList.images.length;
+            minerOnePosition = random() % images.length;
+            minerTwoPosition = random() % images.length;
         }
 
         // create new verifiers struct and add two miners
         // Verifiers storage pingers = Verifiers([minerOne, minerTwo]);
-        address minerOne = imageList.images[minerOnePosition].owner;
-        address minerTwo = imageList.images[minerTwoPosition].owner;
+        address minerOne = images[minerOnePosition].owner;
+        address minerTwo = images[minerTwoPosition].owner;
         // pingers.addressList.push(minerOne);
         // pingers.addressList.push(minerTwo);
         // pingers = Verifiers([minerOne, minerTwo]);
@@ -449,8 +449,8 @@ contract Kubercoin {
 // am i doing the right thing here?
 //maybe maintain mapping of client to image to make easier?
     function reportImageOffline(address client) public{
-        for (uint i = 0; i < imageList.images.length; i++) {
-            ImageData memory image = imageList.images[i];
+        for (uint i = 0; i < images.length; i++) {
+            ImageData memory image = images[i];
             if (image.currentClient == client) {
                 punishMiner(image.owner) ;
                 removeImage(i);
@@ -472,7 +472,7 @@ contract Kubercoin {
     }
 
     function closeConnection(uint256 position) public {
-        ImageData storage data = imageList.images[position];
+        ImageData storage data = images[position];
         require(
             msg.sender == data.currentClient || msg.sender == data.owner,
             "You do not have access"
@@ -487,14 +487,14 @@ contract Kubercoin {
                 (elapsedTime / 60) * data.costPerMinute
             );
             emit ContractEnded(data.currentClient, (elapsedTime / 60) * data.costPerMinute);
-            imageList.emptySlots.push(position);
+            emptySlots.push(position);
             updateRating(data.owner, true);
             emit MinerListUpdate(data.owner);
         } else if (data.owner == msg.sender) {
             //miner decides to end contract
             if (!data.inUse) {
                 // task is complete
-                imageList.emptySlots.push(position);
+                emptySlots.push(position);
                 emit MinerListUpdate(data.owner);
                 makeTransfer(
                     data.currentClient,
@@ -626,17 +626,17 @@ contract Kubercoin {
     }
     
     function getImage(uint i) public returns(ImageData memory) {
-        ImageData memory image = imageList.images[i];
+        ImageData memory image = images[i];
         return image;
     }
 
     function updateImage(uint i, uint costPerMinute, uint maxTime, uint startTime, bool inUse, address currentClient) public {
-        if (msg.sender == imageList.images[i].owner) {
-            imageList.images[i].costPerMinute = costPerMinute;
-            imageList.images[i].maxTime = maxTime;
-            imageList.images[i].startTime = startTime;
-            imageList.images[i].inUse = inUse;
-            imageList.images[i].currentClient = currentClient;
+        if (msg.sender == images[i].owner) {
+            images[i].costPerMinute = costPerMinute;
+            images[i].maxTime = maxTime;
+            images[i].startTime = startTime;
+            images[i].inUse = inUse;
+            images[i].currentClient = currentClient;
         }
     }
     
