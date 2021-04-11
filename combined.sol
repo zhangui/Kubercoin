@@ -553,10 +553,22 @@ contract Kubercoin {
         
     }
     
+    function getImage(uint i) public returns(ImageData memory) {
+        ImageData memory image = imageList.images[i];
+        return image;
+    }
+
+    function updateImage(uint i, uint costPerMinute, uint maxTime, uint startTime, bool inUse, address currentClient) public {
+        if (msg.sender == imageList.images[i].owner) {
+            imageList.images[i].costPerMinute = costPerMinute;
+            imageList.images[i].maxTime = maxTime;
+            imageList.images[i].startTime = startTime;
+            imageList.images[i].inUse = inUse;
+            imageList.images[i].currentClient = currentClient;
+        }
+    }
+    
     function test1() public {
         addImage(msg.sender, 2, 10000, block.timestamp, false, "i", msg.sender);
-        
-        
-        
     }
 }
