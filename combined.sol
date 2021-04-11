@@ -197,12 +197,62 @@ contract PublicHeap{
   }
 }
 
+contract queue
+{
+    struct Queue {
+        uint[200] data;
+        uint front;
+        uint back;
+    }
+    /// @dev the number of elements stored in the queue.
+    function length(Queue storage q) view internal returns (uint) {
+        return q.back - q.front;
+    }
+    /// @dev the number of elements this queue can hold
+    function capacity(Queue storage q) view internal returns (uint) {
+        return q.data.length - 1;
+    }
+    /// @dev push a new element to the back of the queue
+    function push(Queue storage q, uint data) internal
+    {
+        if ((q.back + 1) % q.data.length == q.front)
+            return; // throw;
+        q.data[q.back] = data;
+        q.back = (q.back + 1) % q.data.length;
+    }
+    /// @dev remove and return the element at the front of the queue
+    function pop(Queue storage q) internal returns (uint r)
+    {
+        if (q.back == q.front)
+            revert(); // throw;
+        r = q.data[q.front];
+        delete q.data[q.front];
+        q.front = (q.front + 1) % q.data.length;
+    }
+}
 
+contract PublicQueue is queue {
+    Queue requests;
+    constructor() public {
+        // requests.data = uint[200];
+    }
+    function push(uint d) public {
+        push(requests, d);
+    }
+    function pop() public returns (uint) {
+        return pop(requests);
+    }
+    function length() public returns (uint) {
+        return length(requests);
+    }
+}
 
 contract Kubercoin {
 
     using SafeMath for uint256;
     PublicHeap heap;
+    PublicQueue freeHeap;
+    PublicQueue freeImages;
 
     uint private verifierTimeInterval = 300;
     uint private lastCheck;
@@ -216,6 +266,8 @@ contract Kubercoin {
 
     constructor () public {
         heap = new PublicHeap();
+        freeHeap = new PublicQueue();
+        freeImages = new PublicQueue();
         lastCheck = block.timestamp;
         // imageList = new ImageSet();
     }
@@ -520,36 +572,49 @@ contract Kubercoin {
         return 145;
     }
     
+    string testtmp;
+    
     function getAvailableImage() public returns (string memory) {
         // Heap.Node memory node = heap.extractMax();
         // int128 id = node.id;
         
         // imageList.addMiner
-        return assignImage(msg.sender);
+        testtmp = assignImage(msg.sender);
+        return testtmp;
     }
     
+    function getTestTmp() public view returns (string memory) {
+        return testtmp;
+    }
+    
+    
+    
     function assignImage(address client) private returns (string memory) {
-        uint unvetted = 0;
-        for (uint i = 0; i < imageList.emptySlots.length; i++) {
-            uint slot = imageList.emptySlots[i];
-            ImageData memory imageData = imageList.images[slot];
-            address owner = imageData.owner;
-            if (minerRatings[owner] > 600) {
-                imageData.currentClient = client;
-                imageData.inUse = true;
-                return imageData.ip;
-            } else if (minerRatings[owner] > 400) {
-                unvetted = slot;
-            }
+        // uint unvetted = 0;
+        // Heap.Node memory emptySlot = freeImages.extractMax();
+        if (freeImages.length() == 0) {
+            return "no available images at this time";
         }
-        uint slot = imageList.emptySlots[unvetted];
-        ImageData memory imageData = imageList.images[slot];
-        if (imageData.inUse) {
-            return "";
-        }
+        uint slot = freeImages.pop();
+        // for (uint i = 0; i < emptySlots.length; i++) {
+        //  = emptySlots[i];
+        ImageData memory imageData = images[slot];
+        address owner = imageData.owner;
         imageData.currentClient = client;
         imageData.inUse = true;
         return imageData.ip;
+        // if (minerRatings[owner] > 600) {
+            
+        // }
+        // }
+        // uint slot = emptySlots[unvetted];
+        // ImageData memory imageData = images[slot];
+        // if (imageData.inUse) {
+        //     return "";
+        // }
+        // imageData.currentClient = client;
+        // imageData.inUse = true;
+        // return imageData.ip;
         
     }
     
