@@ -199,7 +199,7 @@ contract PublicHeap{
 
 
 
-contract Matchmaker {
+contract Kubercoin {
 
     using SafeMath for uint256;
     PublicHeap heap;
@@ -447,7 +447,7 @@ contract Matchmaker {
 
                 //TODO: make sure removeImage and assignImage calls the MinterListUpdate event
                 removeImage(position);
-                //assignImage(owner); //since miner ended, need to give client a new image to work with
+                assignImage(owner); //since miner ended, need to give client a new image to work with
             }
         }
     }
