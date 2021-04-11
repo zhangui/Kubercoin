@@ -625,7 +625,7 @@ contract Kubercoin {
         
     }
     
-    function getImage(uint i) public returns(ImageData memory) {
+    function getImage(uint i) public view returns(ImageData memory) {
         ImageData memory image = images[i];
         return image;
     }
