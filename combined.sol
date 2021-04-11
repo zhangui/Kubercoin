@@ -343,7 +343,7 @@ contract Kubercoin {
 
     // instead of removeMiner, just take in index and remove it
     function removeImage(uint i) public {
-        emptySlots.push(i);
+        freeImages.push(i);
     }
 
     // not secure but generates a semi random number,
@@ -359,12 +359,7 @@ contract Kubercoin {
     //check if image list contains a miner in the randomly 
 // generated position
     function minerExists(uint minerPosition) public returns (bool){
-        for (uint i = 0; i < emptySlots.length; i++) {
-            if (emptySlots[i] == minerPosition) {
-                return false;
-            }
-        }
-        return true;
+      return images[minerPosition].inUse;
     }
 
     //assign two random miners to ping image
@@ -487,14 +482,14 @@ contract Kubercoin {
                 (elapsedTime / 60) * data.costPerMinute
             );
             emit ContractEnded(data.currentClient, (elapsedTime / 60) * data.costPerMinute);
-            emptySlots.push(position);
+            freeImages.push(position);
             updateRating(data.owner, true);
             emit MinerListUpdate(data.owner);
         } else if (data.owner == msg.sender) {
             //miner decides to end contract
             if (!data.inUse) {
                 // task is complete
-                emptySlots.push(position);
+                freeImages.push(position);
                 emit MinerListUpdate(data.owner);
                 makeTransfer(
                     data.currentClient,
@@ -609,7 +604,7 @@ contract Kubercoin {
         //address owner = imageData.owner;
         images[slot].currentClient = client;
         images[slot].inUse = true;
-        return imageData.ip;
+        return images[slot].ip;
         // if (minerRatings[owner] > 600) {
             
         // }
