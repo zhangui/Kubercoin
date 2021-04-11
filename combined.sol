@@ -315,18 +315,25 @@ contract Kubercoin {
     // instead of addMiner
     function addImage(address owner, uint costPerMinute, uint maxTime, uint startTime, bool inUse, string memory ip, address currentClient) public {
         ImageData memory newImage = ImageData(owner, costPerMinute, maxTime, startTime, inUse, ip, currentClient);
-        if (imageList.emptySlots.length == 0) {
+        if (minerRatings[owner] == 0) {
+            minerRatings[owner] = 700;
+        }
+        if (freeHeap.length() == 0) {
             imageOwnership[owner].push(images.length);
+            freeImages.push(images.length);
             images.push(newImage);
+            
         } else {
             // need to test whether this works as a mutex lock
-            while(!imageList.locked)
-                imageList.locked = true;
-            uint emptySlot = imageList.emptySlots[imageList.emptySlots.length - 1];
-            imageOwnership[owner].push(images.length);
-            imageList.emptySlots.pop();
-            imageList.images[emptySlot] = newImage;
-            imageList.locked = false;
+            while(!locked)
+                locked = true;
+            // uint emptySlot = imageList.emptySlots[imageList.emptySlots.length - 1];
+            
+            uint emptySlot = freeHeap.pop();
+            images[emptySlot] = newImage;
+            imageOwnership[owner].push(emptySlot);
+            freeImages.push(emptySlot);
+            locked = false;
         }
     }
     
