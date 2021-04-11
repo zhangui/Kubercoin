@@ -605,10 +605,10 @@ contract Kubercoin {
         uint slot = freeImages.pop();
         // for (uint i = 0; i < emptySlots.length; i++) {
         //  = emptySlots[i];
-        ImageData memory imageData = images[slot];
-        address owner = imageData.owner;
-        imageData.currentClient = client;
-        imageData.inUse = true;
+        //ImageData memory imageData = images[slot];
+        //address owner = imageData.owner;
+        images[slot].currentClient = client;
+        images[slot].inUse = true;
         return imageData.ip;
         // if (minerRatings[owner] > 600) {
             
