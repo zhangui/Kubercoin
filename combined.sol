@@ -325,8 +325,8 @@ contract Kubercoin {
             
         } else {
             // need to test whether this works as a mutex lock
-            while(!locked)
-                locked = true;
+            while(locked)
+            locked = true;
             // uint emptySlot = imageList.emptySlots[imageList.emptySlots.length - 1];
             
             uint emptySlot = freeHeap.pop();
