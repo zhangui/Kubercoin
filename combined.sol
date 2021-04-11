@@ -421,8 +421,32 @@ contract Kubercoin {
         }
     }
 
-    function getImages() public view returns (uint256[] memory) {
-        return imageOwnership[msg.sender];
+    function assignImage(address client) private returns (string memory) {
+        // uint unvetted = 0;
+        // Heap.Node memory emptySlot = freeImages.extractMax();
+        if (freeImages.length() == 0) {
+            return "no available images at this time";
+        }
+        uint256 slot = freeImages.pop();
+        // for (uint i = 0; i < emptySlots.length; i++) {
+        //  = emptySlots[i];
+        //ImageData memory imageData = images[slot];
+        //address owner = imageData.owner;
+        images[slot].currentClient = client;
+        images[slot].inUse = true;
+        return images[slot].ip;
+        // if (minerRatings[owner] > 600) {
+
+        // }
+        // }
+        // uint slot = emptySlots[unvetted];
+        // ImageData memory imageData = images[slot];
+        // if (imageData.inUse) {
+        //     return "";
+        // }
+        // imageData.currentClient = client;
+        // imageData.inUse = true;
+        // return imageData.ip;
     }
 
     // instead of removeMiner, just take in index and remove it
@@ -670,7 +694,7 @@ contract Kubercoin {
 
     string testtmp;
 
-    function getAvailableImage() public returns (string memory) {
+    function assignNextAvailableImageToSender() public returns (string memory) {
         // Heap.Node memory node = heap.extractMax();
         // int128 id = node.id;
 
@@ -683,37 +707,13 @@ contract Kubercoin {
         return testtmp;
     }
 
-    function assignImage(address client) private returns (string memory) {
-        // uint unvetted = 0;
-        // Heap.Node memory emptySlot = freeImages.extractMax();
-        if (freeImages.length() == 0) {
-            return "no available images at this time";
-        }
-        uint256 slot = freeImages.pop();
-        // for (uint i = 0; i < emptySlots.length; i++) {
-        //  = emptySlots[i];
-        //ImageData memory imageData = images[slot];
-        //address owner = imageData.owner;
-        images[slot].currentClient = client;
-        images[slot].inUse = true;
-        return images[slot].ip;
-        // if (minerRatings[owner] > 600) {
-
-        // }
-        // }
-        // uint slot = emptySlots[unvetted];
-        // ImageData memory imageData = images[slot];
-        // if (imageData.inUse) {
-        //     return "";
-        // }
-        // imageData.currentClient = client;
-        // imageData.inUse = true;
-        // return imageData.ip;
-    }
-
     function getImage(uint256 i) public view returns (ImageData memory) {
         ImageData memory image = images[i];
         return image;
+    }
+
+    function getSendersImages() public view returns (uint256[] memory) {
+        return imageOwnership[msg.sender];
     }
 
     function updateImage(
@@ -733,7 +733,7 @@ contract Kubercoin {
         }
     }
 
-    function test1() public {
+    function addCurrentMinerAsFreeImage() public {
         addImage(msg.sender, 2, 10000, block.timestamp, false, "i", msg.sender);
     }
 }
