@@ -1,4 +1,5 @@
 pragma solidity >=0.4.22 <0.6.0;
+pragma experimental ABIEncoderV2;
 
 contract Matchmaker {
 
@@ -82,7 +83,7 @@ contract Matchmaker {
             imageList.images.push(newImage);
         } else {
             // need to test whether this works as a mutex lock
-            while(!imageList.locked)
+            while(imageList.locked)
                 imageList.locked = true;
             uint emptySlot = imageList.emptySlots[imageList.emptySlots.length - 1];
             imageList.emptySlots.pop();
@@ -94,6 +95,21 @@ contract Matchmaker {
     // instead of removeMiner, just take in index and remove it
     function removeImage(uint i) public {
         imageList.emptySlots.push(i);
+    }
+
+    function getImage(uint i) public returns(ImageData memory) {
+        ImageData memory image = imageList.images[i];
+        return image;
+    }
+
+    function updateImage(uint i, uint costPerMinute, uint maxTime, uint startTime, bool inUse, address currentClient) public {
+        if (msg.sender == imageList.images[i].owner) {
+            imageList.images[i].costPerMinute = costPerMinute;
+            imageList.images[i].maxTime = maxTime;
+            imageList.images[i].startTime = startTime;
+            imageList.images[i].inUse = inUse;
+            imageList.images[i].currentClient = currentClient;
+        }
     }
 
 }
