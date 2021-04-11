@@ -264,7 +264,7 @@ contract Kubercoin {
     event ContractEnded(address payer, uint256 amount);
     event MinerListUpdate(address UpdatedMiner);
 
-    constructor () public {
+    constructor () public payable {
         heap = new PublicHeap();
         freeHeap = new PublicQueue();
         freeImages = new PublicQueue();
@@ -463,7 +463,7 @@ contract Kubercoin {
         }
     }
 
-    function closeConnection(uint256 position) public {
+    function closeConnection(uint256 position) public payable {
         ImageData storage data = images[position];
         require(
             msg.sender == data.currentClient || msg.sender == data.owner,
@@ -519,7 +519,7 @@ contract Kubercoin {
         address payer,
         address receiver,
         uint256 amount
-    ) public {
+    ) public payable {
         payable(receiver).transfer(amount);
     }
 
