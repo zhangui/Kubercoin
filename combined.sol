@@ -356,11 +356,6 @@ contract Kubercoin {
                                               randNonce))) % 100;
      }
 
-    //check if image list contains a miner in the randomly 
-// generated position
-    function minerExists(uint minerPosition) public returns (bool){
-      return images[minerPosition].inUse;
-    }
 
     //assign two random miners to ping image
     function assignPings (address client) public{
