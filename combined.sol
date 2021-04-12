@@ -374,7 +374,8 @@ contract Kubercoin {
     }
 
     mapping(address => uint256) minerRatings;
-    mapping(address => address[]) currentPings;
+    mapping(address => string[]) currentPings;
+    mapping(string => address) ipToClient;
 
     mapping(address => string) publicKeys;
 
@@ -468,7 +469,7 @@ contract Kubercoin {
     }
 
     //assign two random miners to ping image
-    function assignPings(address client) public {
+    function assignPings(address client, string memory ipAddress) public {
         // select two miners at random
         uint256 minerOnePosition = random() % images.length;
         uint256 minerTwoPosition = random() % images.length;
@@ -492,8 +493,17 @@ contract Kubercoin {
         pendingVerifies[client] = Verifiers([minerOne, minerTwo]);
 
         //add client to current pings mapping of both miners
-        currentPings[minerOne].push(client);
-        currentPings[minerTwo].push(client);
+        currentPings[minerOne].push(ipAddress);
+        currentPings[minerTwo].push(ipAddress);
+        ipToClient[ipAddress] = client;
+    }
+    
+    function getPendingPings() public view returns (string[] memory) {
+        return currentPings[msg.sender];
+    }
+    
+    function getIPAssignedClient(string memory ipAddress) public view returns (address) {
+        return ipToClient[ipAddress];
     }
 
     //check that the miner has written the ping results to the block chain
@@ -720,20 +730,20 @@ contract Kubercoin {
         uint256 i,
         uint256 costPerMinute,
         uint256 maxTime,
-        uint256 startTime,
-        bool inUse,
-        address currentClient
     ) public {
         if (msg.sender == images[i].owner) {
             images[i].costPerMinute = costPerMinute;
             images[i].maxTime = maxTime;
-            images[i].startTime = startTime;
-            images[i].inUse = inUse;
-            images[i].currentClient = currentClient;
         }
     }
 
     function addCurrentMinerAsFreeImage() public {
         addImage(msg.sender, 2, 10000, block.timestamp, false, "i", msg.sender);
+    }
+    
+    function sampleRun() public {
+        addImage(msg.sender, 2, 10000, block.timestamp, false, "i", msg.sender);
+        // ImageData memory data = assignImage(0);
+        // randomPings(msg.sender)
     }
 }
