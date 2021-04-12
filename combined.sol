@@ -501,10 +501,6 @@ contract Kubercoin {
     function getPendingPings() public view returns (string[] memory) {
         return currentPings[msg.sender];
     }
-    
-    function getIPAssignedClient(string memory ipAddress) public view returns (address) {
-        return ipToClient[ipAddress];
-    }
 
     //check that the miner has written the ping results to the block chain
     function checkVerifies() public {
@@ -570,7 +566,8 @@ contract Kubercoin {
         }
     }
 
-    function verify(address addressToBeVerified, bool active) public {
+    function verify(string memory ipAddress, bool active) public {
+        address addressToBeVerified = ipToClient[ipAddress];
         address[2] memory addressList =
             pendingVerifies[addressToBeVerified].addressList;
         for (uint256 i = 0; i < addressList.length; i++) {
@@ -729,7 +726,7 @@ contract Kubercoin {
     function updateImage(
         uint256 i,
         uint256 costPerMinute,
-        uint256 maxTime,
+        uint256 maxTime
     ) public {
         if (msg.sender == images[i].owner) {
             images[i].costPerMinute = costPerMinute;
