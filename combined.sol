@@ -52,13 +52,13 @@ library Heap {
     uint256 constant ROOT_INDEX = 1;
 
     struct Data {
-        int128 idCount;
+        uint256 idCount;
         Node[] nodes; // root is index 1; index 0 not used
-        mapping(int128 => uint256) indices; // unique id => node index
+        mapping(uint256 => uint256) indices; // unique id => node index
     }
     struct Node {
-        int128 id; //use with another mapping to store arbitrary object types
-        int128 priority;
+        uint256 id; //use with another mapping to store arbitrary object types
+        uint256 priority;
     }
 
     //call init before anything else
@@ -66,7 +66,7 @@ library Heap {
         if (self.nodes.length == 0) self.nodes.push(Node(0, 0));
     }
 
-    function insert(Data storage self, int128 priority)
+    function insert(Data storage self, uint256 priority)
         internal
         returns (Node memory)
     {
@@ -86,7 +86,7 @@ library Heap {
         return _extract(self, ROOT_INDEX);
     }
 
-    function extractById(Data storage self, int128 id)
+    function extractById(Data storage self, uint256 id)
         internal
         returns (Node memory)
     {
@@ -100,7 +100,7 @@ library Heap {
         return self.nodes;
     }
 
-    function getById(Data storage self, int128 id)
+    function getById(Data storage self, uint256 id)
         internal
         view
         returns (Node memory)
@@ -216,13 +216,13 @@ contract PublicHeap {
         data.init();
     }
 
-    function heapify(int128[] memory priorities) public {
+    function heapify(uint256[] memory priorities) public {
         for (uint256 i; i < priorities.length; i++) {
             data.insert(priorities[i]);
         }
     }
 
-    function insert(int128 priority) public returns (Heap.Node memory) {
+    function insert(uint256 priority) public returns (Heap.Node memory) {
         return data.insert(priority);
     }
 
@@ -230,7 +230,7 @@ contract PublicHeap {
         return data.extractMax();
     }
 
-    function extractById(int128 id) public returns (Heap.Node memory) {
+    function extractById(uint256 id) public returns (Heap.Node memory) {
         return data.extractById(id);
     }
 
@@ -243,7 +243,7 @@ contract PublicHeap {
         return data.getMax();
     }
 
-    function getById(int128 id) public view returns (Heap.Node memory) {
+    function getById(uint256 id) public view returns (Heap.Node memory) {
         return data.getById(id);
     }
 
@@ -255,11 +255,11 @@ contract PublicHeap {
         return data.size();
     }
 
-    function idCount() public view returns (int128) {
+    function idCount() public view returns (uint256) {
         return data.idCount;
     }
 
-    function indices(int128 id) public view returns (uint256) {
+    function indices(uint256 id) public view returns (uint256) {
         return data.indices[id];
     }
 }
@@ -319,12 +319,16 @@ contract PublicQueue is queue {
 
 contract Kubercoin {
     using SafeMath for uint256;
-    PublicHeap heap;
-    PublicQueue freeHeap;
-    PublicQueue freeImages;
+    // PublicHeap heap;
+    PublicQueue garbageQueue;
+    PublicQueue availableImages;
+    PublicQueue priorityImages;
 
     uint256 private verifierTimeInterval = 300;
     uint256 private lastCheck;
+    
+    uint256 private defaultRating = 500;
+    uint256 private maxRating = 1000;
 
     //Justin's code from pingVerify branch
     uint256 randNonce = 0;
@@ -334,9 +338,10 @@ contract Kubercoin {
     event MinerListUpdate(address UpdatedMiner);
 
     constructor() public payable {
-        heap = new PublicHeap();
-        freeHeap = new PublicQueue();
-        freeImages = new PublicQueue();
+        // heap = new PublicHeap();
+        garbageQueue = new PublicQueue();
+        availableImages = new PublicQueue();
+        priorityImages = new PublicQueue();
         lastCheck = block.timestamp;
         // imageList = new ImageSet();
     }
@@ -403,32 +408,38 @@ contract Kubercoin {
                 currentClient
             );
         if (minerRatings[owner] == 0) {
-            minerRatings[owner] = 700;
+            minerRatings[owner] = defaultRating;
         }
-        if (freeHeap.length() == 0) {
+        if (garbageQueue.length() == 0) {
             imageOwnership[owner].push(images.length);
-            freeImages.push(images.length);
+            availableImages.push(images.length);
             images.push(newImage);
         } else {
             // need to test whether this works as a mutex lock
             while (locked) locked = true;
             // uint emptySlot = imageList.emptySlots[imageList.emptySlots.length - 1];
 
-            uint256 emptySlot = freeHeap.pop();
+            uint256 emptySlot = garbageQueue.pop();
             images[emptySlot] = newImage;
             imageOwnership[owner].push(emptySlot);
-            freeImages.push(emptySlot);
+            availableImages.push(emptySlot);
             locked = false;
         }
     }
 
     function assignImage(address client) private returns (string memory) {
         // uint unvetted = 0;
-        // Heap.Node memory emptySlot = freeImages.extractMax();
-        if (freeImages.length() == 0) {
+        // Heap.Node memory emptySlot = availableImages.extractMax();
+        if (availableImages.length() == 0 && priorityImages.length() == 0) {
             return "no available images at this time";
         }
-        uint256 slot = freeImages.pop();
+        if (priorityImages.length() != 0) {
+            uint256 slot = priorityImages.pop();
+            images[slot].currentClient = client;
+            images[slot].inUse = true;
+            return images[slot].ip;
+        }
+        uint256 slot = availableImages.pop();
         // for (uint i = 0; i < emptySlots.length; i++) {
         //  = emptySlots[i];
         //ImageData memory imageData = images[slot];
@@ -436,9 +447,7 @@ contract Kubercoin {
         images[slot].currentClient = client;
         images[slot].inUse = true;
         return images[slot].ip;
-        // if (minerRatings[owner] > 600) {
-
-        // }
+        
         // }
         // uint slot = emptySlots[unvetted];
         // ImageData memory imageData = images[slot];
@@ -452,7 +461,7 @@ contract Kubercoin {
 
     // instead of removeMiner, just take in index and remove it
     function removeImage(uint256 i) public {
-        freeImages.push(i);
+        availableImages.push(i);
     }
 
     // not secure but generates a semi random number,
@@ -604,14 +613,14 @@ contract Kubercoin {
                 data.currentClient,
                 (elapsedTime / 60) * data.costPerMinute
             );
-            freeImages.push(position);
+            availableImages.push(position);
             updateRating(data.owner, true);
             emit MinerListUpdate(data.owner);
         } else if (data.owner == msg.sender) {
             //miner decides to end contract
             if (!data.inUse) {
                 // task is complete
-                freeImages.push(position);
+                availableImages.push(position);
                 emit MinerListUpdate(data.owner);
                 makeTransfer(
                     data.currentClient,
@@ -660,39 +669,39 @@ contract Kubercoin {
         updateRating(pinger, false);
     }
 
-    struct Rating {
-        address owner;
-        int128 score;
-    }
+    // struct Rating {
+    //     address owner;
+    //     uint256 score;
+    // }
 
-    function calculateNewScore(Rating memory rating, bool success)
-        public
-        returns (int128)
+    function calculateNewScore(uint256 rating, bool success)
+        public view
+        returns (uint256)
     {
+        uint multiplier = maxRating;
+        if (!success) {
+            multiplier = 0;
+        }
         // 1000 + (400 * (successes - losses)) / (successes + losses)
-        return rating.score * int128(9);
+        return (rating).mul(uint256(9)).div(10) + multiplier.mul(uint256(1)).div(10);
     }
 
-    mapping(address => Rating) ratingMap;
-    mapping(int128 => uint128) heapToImage;
 
     function updateRating(address owner, bool reward) public {
-        Rating memory rating = ratingMap[owner];
-        // require(
-        //     rating != null,
-        //     "Rating doesn't exist"
-        // );
-        int128 newScore = calculateNewScore(rating, false);
-        rating.score = newScore;
-        rating.owner = owner;
-        ratingMap[owner] = rating;
+        uint256 rating = minerRatings[owner];
+        uint256 newScore = calculateNewScore(rating, reward);
+        minerRatings[owner] = newScore;
+    }
+    
+    function getRating() public view returns (uint256) {
+        return minerRatings[msg.sender];
     }
 
-    function addMiner() public {
-        Rating memory rating = Rating(msg.sender, 500);
-        ratingMap[msg.sender] = rating;
-        Heap.Node memory node = heap.insert(rating.score);
-    }
+    // function addMiner() public {
+    //     Rating memory rating = Rating(msg.sender, 500);
+    //     ratingMap[msg.sender] = rating;
+    //     Heap.Node memory node = heap.insert(rating.score);
+    // }
 
     // Test Functions
     function respond() external view returns (int128) {
