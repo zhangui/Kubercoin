@@ -540,14 +540,13 @@ contract Kubercoin {
         }
     }
 
-    // very inefficient
     // check if verifier has failed to ping or
     // an image has gone offline
     function checkForExpiriations() public {
-        if (now - lastCheck >= verifierTimeInterval) {
+        if (block.timestamp - lastCheck >= verifierTimeInterval) {
             checkVerifies();
             checkImageFailures();
-            lastCheck = now;
+            lastCheck = block.timestamp;
         }
     }
 
