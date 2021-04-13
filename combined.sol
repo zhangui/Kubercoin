@@ -387,6 +387,8 @@ contract Kubercoin {
     mapping(address => Verifiers) pendingVerifies;
     mapping(address => uint256[]) imageOwnership;
     mapping(string => bool) fails;
+    mapping(string => string) private ipToEncryptedUsername;
+    mapping(string => string) private ipToEncryptedPwd;
 
     // instead of addMiner
     function addImage(
@@ -750,6 +752,17 @@ contract Kubercoin {
 
     function getSendersImages() public view returns (uint256[] memory) {
         return imageOwnership[msg.sender];
+    }
+
+    
+    
+    function getEncryptedUsernamePwd(string memory ipAddress) public view returns (string memory, string memory) {
+        if (!(ipToClient[ipAddress] == msg.sender)) {
+            return ("access denied", "access denied");
+        }
+        string memory encryptedUsername = ipToEncryptedUsername[ipAddress];
+        string memory encryptedPwd = ipToEncryptedPwd[ipAddress];
+        return (encryptedUsername, encryptedPwd);
     }
 
     function updateImage(
