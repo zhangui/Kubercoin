@@ -746,6 +746,69 @@ contract Kubercoin {
         addImage(msg.sender, 2, 10000, block.timestamp, false, "i", msg.sender);
     }
     
+       
+    //justins test functions start
+    
+    function testGetPendingPings(address miner) public view returns (string[] memory) {
+        return currentPings[miner];
+    }
+    
+    function getClientFromIP(string memory ip) public view returns (address) {
+        return ipToClient[ip];
+    }
+    
+    function getVerifiersForClient(address client) public view returns (address[] memory) {
+        address[] memory miners;
+        miners[0] = pendingVerifies[client].addressList[0];
+        miners[1] = pendingVerifies[client].addressList[1];
+        return miners;
+    }
+    
+    function getPingFailures(address miner) public view returns (uint256) {
+        return pingFailures[miner];
+    }
+    
+    function testVerfiers () public {
+               //functions to test 
+            //assignPings
+            //getPendingPings
+            //checkVerifies
+            //checkImageFailures
+            //reportFailureToPing
+            //reportImageOffline
+        
+        //addMiners for verifiers
+        addImage(msg.sender, 2, 10000, block.timestamp, true, "127.0.0.1", msg.sender);
+        addImage(msg.sender, 2, 10000, block.timestamp, true, "127.0.0.2", msg.sender);
+        
+        //add Image to be pinged
+        addImage(msg.sender, 2, 10000, block.timestamp, false, "255.255.255.255", msg.sender);
+        
+        // takes in client, IP and 
+                // -pindingVerifies[client] should have varifier struct with both miners
+                // -currentPings[miner] should map to to IP to ping
+                // -ipToClient[ip] should map to clent provided
+        assignPings(msg.sender, "127.0.0.1");
+        
+        //check pings added correctly
+        getPendingPings(); // returns string of IPs that need to be pinged
+        testGetPendingPings(msg.sender); //check with testGetPendingPings
+        
+        //check IP mapping returned correctly
+        getClientFromIP("255.255.255.255");
+        
+        //checkVerfiers added correctly
+        getVerifiersForClient(msg.sender);
+        
+        checkVerifies(); // should call reportFailureToPing on all miners that are pingers
+        getPingFailures(getVerifiersForClient(msg.sender)[0]);
+        getPingFailures(getVerifiersForClient(msg.sender)[1]);
+        
+ 
+    }
+    
+    //end justin test 
+    
     function sampleRun() public {
         addImage(msg.sender, 2, 10000, block.timestamp, false, "i", msg.sender);
         // ImageData memory data = assignImage(0);
