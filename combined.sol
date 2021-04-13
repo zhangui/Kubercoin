@@ -381,7 +381,6 @@ contract Kubercoin {
     mapping(address => uint256) minerRatings;
     mapping(address => string[]) currentPings;
     mapping(string => address) ipToClient;
-    mapping(string => address) ipToOwner;
 
     mapping(address => string) publicKeys;
 
@@ -441,11 +440,7 @@ contract Kubercoin {
             uint256 slot = priorityImages.pop();
             images[slot].currentClient = client;
             images[slot].inUse = true;
-            
-            string memory ipAddress = images[slot].ip;
-            ipToOwner[ipAddress] = images[slot].owner;
-            ipToClient[ipAddress] = client;
-            return ipAddress;
+            return images[slot].ip;
         }
         uint256 slot = availableImages.pop();
         // for (uint i = 0; i < emptySlots.length; i++) {
@@ -454,10 +449,7 @@ contract Kubercoin {
         //address owner = imageData.owner;
         images[slot].currentClient = client;
         images[slot].inUse = true;
-        string memory ipAddress = images[slot].ip;
-        ipToOwner[ipAddress] = images[slot].owner;
-        ipToClient[ipAddress] = client;
-        return ipAddress;
+        return images[slot].ip;
         
         // }
         // uint slot = emptySlots[unvetted];
@@ -470,9 +462,14 @@ contract Kubercoin {
         // return imageData.ip;
     }
 
-    // instead of removeMiner, just take in index and remove it
+    // adds image to available queue
     function removeImage(uint256 i) public {
         availableImages.push(i);
+    }
+
+    // adds image to garbage queue
+    function deleteImage(uint256 i) public {
+        garbageQueue.push(i);
     }
 
     // not secure but generates a semi random number,
@@ -531,6 +528,7 @@ contract Kubercoin {
         //add client to current pings mapping of both miners
         currentPings[minerOne].push(ipAddress);
         currentPings[minerTwo].push(ipAddress);
+        ipToClient[ipAddress] = client;
         clients.push(client);
     }
     
@@ -770,13 +768,6 @@ contract Kubercoin {
         string memory encryptedUsername = ipToEncryptedUsername[ipAddress];
         string memory encryptedPwd = ipToEncryptedPwd[ipAddress];
         return (encryptedUsername, encryptedPwd);
-    }
-    
-    function setEncryptedUsernamePwd(string memory ipAddress, string memory username, string memory pwd) external {
-        if (ipToOwner[ipAddress] == msg.sender) {
-            ipToEncryptedUsername[ipAddress] = username;
-            ipToEncryptedPwd[ipAddress] = pwd;
-        }
     }
 
     function updateImage(
