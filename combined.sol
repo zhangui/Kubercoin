@@ -484,13 +484,14 @@ contract Kubercoin {
         uint256 minerTwoPosition = random() % images.length;
 
         // check that positions are valid and unique
-        while (!images[minerOnePosition].inUse) {
+        while (!images[minerOnePosition].inUse || images[minerOnePosition].owner == client) {
             minerOnePosition = random() % images.length;
         }
 
         while (
             !images[minerTwoPosition].inUse ||
-            minerTwoPosition == minerOnePosition
+            minerTwoPosition == minerOnePosition ||
+            images[minerTwoPosition].owner == client
         ) {
             minerTwoPosition = random() % images.length;
         }
@@ -748,6 +749,13 @@ contract Kubercoin {
     
        
     //justins test functions start
+    function addCurrentMinerClient() public {
+        addImage(msg.sender, 2, 10000, block.timestamp, false, "127.0.0.1", msg.sender);
+    }
+    
+    function testAssignPings() public {
+        assignPings(msg.sender, "127.0.0.1");
+    }
     
     function testGetPendingPings(address miner) public view returns (string[] memory) {
         return currentPings[miner];
@@ -768,44 +776,7 @@ contract Kubercoin {
         return pingFailures[miner];
     }
     
-    function testVerfiers () public {
-               //functions to test 
-            //assignPings
-            //getPendingPings
-            //checkVerifies
-            //checkImageFailures
-            //reportFailureToPing
-            //reportImageOffline
-        
-        //addMiners for verifiers
-        addImage(msg.sender, 2, 10000, block.timestamp, true, "127.0.0.1", msg.sender);
-        addImage(msg.sender, 2, 10000, block.timestamp, true, "127.0.0.2", msg.sender);
-        
-        //add Image to be pinged
-        addImage(msg.sender, 2, 10000, block.timestamp, false, "255.255.255.255", msg.sender);
-        
-        // takes in client, IP and 
-                // -pindingVerifies[client] should have varifier struct with both miners
-                // -currentPings[miner] should map to to IP to ping
-                // -ipToClient[ip] should map to clent provided
-        assignPings(msg.sender, "127.0.0.1");
-        
-        //check pings added correctly
-        getPendingPings(); // returns string of IPs that need to be pinged
-        testGetPendingPings(msg.sender); //check with testGetPendingPings
-        
-        //check IP mapping returned correctly
-        getClientFromIP("255.255.255.255");
-        
-        //checkVerfiers added correctly
-        getVerifiersForClient(msg.sender);
-        
-        checkVerifies(); // should call reportFailureToPing on all miners that are pingers
-        getPingFailures(getVerifiersForClient(msg.sender)[0]);
-        getPingFailures(getVerifiersForClient(msg.sender)[1]);
-        
- 
-    }
+    
     
     //end justin test 
     
