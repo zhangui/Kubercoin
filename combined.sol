@@ -386,6 +386,7 @@ contract Kubercoin {
 
     mapping(address => Verifiers) pendingVerifies;
     mapping(address => uint256[]) imageOwnership;
+    mapping(string => bool) fails;
 
     // instead of addMiner
     function addImage(
@@ -482,18 +483,33 @@ contract Kubercoin {
         // select two miners at random
         uint256 minerOnePosition = random() % images.length;
         uint256 minerTwoPosition = random() % images.length;
+        uint limit = 100;
 
         // check that positions are valid and unique
-        while (!images[minerOnePosition].inUse || images[minerOnePosition].owner == client) {
+        while ((!images[minerOnePosition].inUse || !images[minerTwoPosition].inUse ||
+                images[minerOnePosition].owner == client || images[minerTwoPosition].owner == client ||
+                minerOnePosition == minerTwoPosition) && limit>0) {
             minerOnePosition = random() % images.length;
-        }
-
-        while (
-            !images[minerTwoPosition].inUse ||
-            minerTwoPosition == minerOnePosition ||
-            images[minerTwoPosition].owner == client
-        ) {
             minerTwoPosition = random() % images.length;
+            limit--;
+        }
+        
+        if (limit == 0) {
+        //     uint c = 0;
+        //     for (uint256 j = 0; j < images.length; j++) {
+        //         if (c == 2) {break;}
+        //         if (images[j].inUse) {
+        //             if (c==0) {
+        //                 minerOnePosition = j;
+        //             } else {
+        //                 minerTwoPosition = j;
+        //             }
+        //             c++;
+        //         }
+        //     }
+        // }
+        minerOnePosition = 0;
+        minerTwoPosition = 1;
         }
 
         // create new verifiers struct and add two miners
@@ -506,6 +522,7 @@ contract Kubercoin {
         currentPings[minerOne].push(ipAddress);
         currentPings[minerTwo].push(ipAddress);
         ipToClient[ipAddress] = client;
+        clients.push(client);
     }
     
     function getPendingPings() public view returns (string[] memory) {
@@ -569,6 +586,7 @@ contract Kubercoin {
         for (uint256 i = 0; i < images.length; i++) {
             ImageData memory image = images[i];
             if (image.currentClient == client) {
+                fails["127.0.0.1"] = true;
                 punishMiner(image.owner);
                 removeImage(i);
             }
@@ -585,10 +603,12 @@ contract Kubercoin {
                     pendingVerifies[addressToBeVerified].verifications[
                         msg.sender
                     ] = 1;
+                    pendingVerifies[addressToBeVerified].lastVerified[msg.sender] = block.timestamp;
                 } else {
                     pendingVerifies[addressToBeVerified].verifications[
                         msg.sender
                     ] = 0;
+                    pendingVerifies[addressToBeVerified].lastVerified[msg.sender] = block.timestamp;
                 }
             }
         }
@@ -772,11 +792,13 @@ contract Kubercoin {
         return miners;
     }
     
-    function getPingFailures(address miner) public view returns (uint256) {
-        return pingFailures[miner];
+    function getPingFailures() public view returns (uint256) {
+        return pingFailures[msg.sender];
     }
     
-    
+    function didFail() public view returns (bool) {
+        return fails["127.0.0.1"];
+    }
     
     //end justin test 
     
