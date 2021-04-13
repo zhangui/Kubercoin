@@ -419,10 +419,6 @@ contract Kubercoin {
             availableImages.push(images.length);
             images.push(newImage);
         } else {
-            // need to test whether this works as a mutex lock
-            while (locked) locked = true;
-            // uint emptySlot = imageList.emptySlots[imageList.emptySlots.length - 1];
-
             uint256 emptySlot = garbageQueue.pop();
             images[emptySlot] = newImage;
             imageOwnership[owner].push(emptySlot);
@@ -470,9 +466,14 @@ contract Kubercoin {
         // return imageData.ip;
     }
 
-    // instead of removeMiner, just take in index and remove it
+    // adds image to available queue
     function removeImage(uint256 i) public {
         availableImages.push(i);
+    }
+    
+    // adds image to garbage queue
+    function deleteImage(uint256 i) public {
+        garbageQueue.push(i);
     }
 
     // not secure but generates a semi random number,
