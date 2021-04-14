@@ -444,6 +444,7 @@ contract Kubercoin {
             ipToOwner[ipAddress] = images[slot].owner;
             ipToClient[ipAddress] = client;
             ipOwnership[client].push(ipAddress);
+            assignPings(client, ipAddress);
             return ipAddress;
         }
         uint256 slot = availableImages.pop();
@@ -457,6 +458,7 @@ contract Kubercoin {
         ipToOwner[ipAddress] = images[slot].owner;
         ipToClient[ipAddress] = client;
         ipOwnership[client].push(ipAddress);
+        assignPings(client, ipAddress);
         return ipAddress;
         
         // }
