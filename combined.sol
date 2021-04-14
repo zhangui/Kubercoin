@@ -387,6 +387,8 @@ contract Kubercoin {
 
     mapping(address => Verifiers) pendingVerifies;
     mapping(address => uint256[]) imageOwnership;
+    mapping(address => string[]) ipOwnership;
+    mapping(string => uint256) private ipToBlock;
     mapping(string => bool) fails;
     mapping(string => string) private ipToEncryptedUsername;
     mapping(string => string) private ipToEncryptedPwd;
@@ -441,6 +443,7 @@ contract Kubercoin {
             string memory ipAddress = images[slot].ip;
             ipToOwner[ipAddress] = images[slot].owner;
             ipToClient[ipAddress] = client;
+            ipOwnership[client].push(ipAddress);
             return ipAddress;
         }
         uint256 slot = availableImages.pop();
@@ -453,6 +456,7 @@ contract Kubercoin {
         string memory ipAddress = images[slot].ip;
         ipToOwner[ipAddress] = images[slot].owner;
         ipToClient[ipAddress] = client;
+        ipOwnership[client].push(ipAddress);
         return ipAddress;
         
         // }
@@ -799,6 +803,25 @@ contract Kubercoin {
     //justins test functions start
     function addCurrentMinerClient() public {
         addImage(msg.sender, 2, 10000, block.timestamp, false, "127.0.0.1", msg.sender);
+    }
+    
+    function addImageWith(string memory ipAddress) external {
+        addImage(msg.sender, 2, 10000, block.timestamp, false, ipAddress, msg.sender);
+    }
+    
+    function closeConnectionWithIP(string memory ipAddress) external payable {
+        if (msg.sender == ipToClient[ipAddress] || msg.sender == ipToOwner[ipAddress]) {
+            uint256 blockNum = ipToBlock[ipAddress];
+            closeConnection(blockNum);
+        }
+    }
+    
+    function clearIPs() external {
+        delete ipOwnership[msg.sender];
+    }
+    
+    function getIPs() external view returns (string[] memory) {
+        return ipOwnership[msg.sender];
     }
     
     function testAssignPings() public {
