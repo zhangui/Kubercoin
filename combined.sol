@@ -771,12 +771,12 @@ contract Kubercoin {
     
     
     function getEncryptedUsernamePwd(string memory ipAddress) public view returns (string memory, string memory) {
-        if (!(ipToClient[ipAddress] == msg.sender)) {
-            return ("access denied", "access denied");
+        if (ipToClient[ipAddress] == msg.sender || ipToOwner[ipAddress] == msg.sender) {
+            string memory encryptedUsername = ipToEncryptedUsername[ipAddress];
+            string memory encryptedPwd = ipToEncryptedPwd[ipAddress];
+            return (encryptedUsername, encryptedPwd);
         }
-        string memory encryptedUsername = ipToEncryptedUsername[ipAddress];
-        string memory encryptedPwd = ipToEncryptedPwd[ipAddress];
-        return (encryptedUsername, encryptedPwd);
+        return ("access denied", "access denied");
     }
     
     function setEncryptedUsernamePwd(string memory ipAddress, string memory username, string memory pwd) external {
