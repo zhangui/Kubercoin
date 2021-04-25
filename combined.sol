@@ -524,7 +524,7 @@ contract Kubercoin {
                      c++;
                  }
              }
-         }
+        
         minerOnePosition = 0;
         minerTwoPosition = 1;
         }
