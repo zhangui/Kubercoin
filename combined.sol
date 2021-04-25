@@ -101,7 +101,7 @@ contract PublicQueue is queue {
 
 contract Kubercoin {
     using SafeMath for uint256;
-    // PublicHeap heap;
+    
     PublicQueue garbageQueue;
     PublicQueue availableImages;
     PublicQueue priorityImages;
@@ -120,12 +120,10 @@ contract Kubercoin {
     event MinerListUpdate(address UpdatedMiner);
 
     constructor() public payable {
-        // heap = new PublicHeap();
         garbageQueue = new PublicQueue();
         availableImages = new PublicQueue();
         priorityImages = new PublicQueue();
         lastCheck = block.timestamp;
-        // imageList = new ImageSet();
     }
 
     struct ImageSet {
@@ -212,8 +210,6 @@ contract Kubercoin {
     }
 
     function assignImage(address client) private returns (string memory) {
-        // uint unvetted = 0;
-        // Heap.Node memory emptySlot = availableImages.extractMax();
         if (availableImages.length() == 0 && priorityImages.length() == 0) {
             return "no available images at this time";
         }
@@ -230,10 +226,6 @@ contract Kubercoin {
             return ipAddress;
         }
         uint256 slot = availableImages.pop();
-        // for (uint i = 0; i < emptySlots.length; i++) {
-        //  = emptySlots[i];
-        //ImageData memory imageData = images[slot];
-        //address owner = imageData.owner;
         images[slot].currentClient = client;
         images[slot].inUse = true;
         string memory ipAddress = images[slot].ip;
@@ -242,16 +234,6 @@ contract Kubercoin {
         ipOwnership[client].push(ipAddress);
         assignPings(client, ipAddress);
         return ipAddress;
-        
-        // }
-        // uint slot = emptySlots[unvetted];
-        // ImageData memory imageData = images[slot];
-        // if (imageData.inUse) {
-        //     return "";
-        // }
-        // imageData.currentClient = client;
-        // imageData.inUse = true;
-        // return imageData.ip;
     }
 
     // adds image to available queue
