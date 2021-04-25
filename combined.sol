@@ -525,8 +525,8 @@ contract Kubercoin {
                  }
              }
          }
-        //minerOnePosition = 0;
-        //minerTwoPosition = 1;
+        minerOnePosition = 0;
+        minerTwoPosition = 1;
         }
 
         // create new verifiers struct and add two miners
