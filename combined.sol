@@ -512,21 +512,21 @@ contract Kubercoin {
         }
         
         if (limit == 0) {
-        //     uint c = 0;
-        //     for (uint256 j = 0; j < images.length; j++) {
-        //         if (c == 2) {break;}
-        //         if (images[j].inUse) {
-        //             if (c==0) {
-        //                 minerOnePosition = j;
-        //             } else {
-        //                 minerTwoPosition = j;
-        //             }
-        //             c++;
-        //         }
-        //     }
-        // }
-        minerOnePosition = 0;
-        minerTwoPosition = 1;
+             uint c = 0;
+             for (uint256 j = 0; j < images.length; j++) {
+                 if (c == 2) {break;}
+                 if (images[j].inUse) {
+                     if (c==0) {
+                         minerOnePosition = j;
+                     } else {
+                         minerTwoPosition = j;
+                     }
+                     c++;
+                 }
+             }
+         }
+        //minerOnePosition = 0;
+        //minerTwoPosition = 1;
         }
 
         // create new verifiers struct and add two miners
@@ -596,8 +596,6 @@ contract Kubercoin {
         }
     }
 
-    // am i doing the right thing here?
-    //maybe maintain mapping of client to image to make easier?
     function reportImageOffline(address client) public {
         for (uint256 i = 0; i < images.length; i++) {
             ImageData memory image = images[i];
@@ -853,7 +851,6 @@ contract Kubercoin {
         return fails["127.0.0.1"];
     }
     
-    //end justin test 
     
     function sampleRun() public {
         addImage(msg.sender, 2, 10000, block.timestamp, false, "i", msg.sender);
