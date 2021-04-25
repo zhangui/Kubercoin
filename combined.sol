@@ -647,14 +647,13 @@ contract Kubercoin {
                 data.currentClient,
                 (elapsedTime / 60) * data.costPerMinute
             );
-            availableImages.push(position);
             updateRating(data.owner, true);
+            enqueueImage(data.owner, position);
             emit MinerListUpdate(data.owner);
         } else if (data.owner == msg.sender) {
             //miner decides to end contract
             if (!data.inUse) {
                 // task is complete
-                availableImages.push(position);
                 emit MinerListUpdate(data.owner);
                 makeTransfer(
                     data.currentClient,
@@ -666,6 +665,7 @@ contract Kubercoin {
                     (elapsedTime / 60) * data.costPerMinute
                 );
                 updateRating(data.owner, true);
+                enqueueImage(data.owner, position);
             } else {
                 //penalize miner and move funds for work done.
                 punishMiner(data.owner);
@@ -684,6 +684,15 @@ contract Kubercoin {
                 assignImage(data.currentClient); //since miner ended, need to give client a new image to work with
             }
         }
+    }
+
+    function enqueueImage(address owner, uint256 position) private {
+      uint256 rating = minerRatings[owner];
+      if (rating > 700) {
+        priorityImages.push(position);
+      } else if (rating >= 300) {
+        availableImages.push(position);
+      }
     }
 
     function makeTransfer(
