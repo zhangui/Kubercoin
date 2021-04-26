@@ -101,7 +101,7 @@ contract PublicQueue is queue {
 
 contract Kubercoin {
     using SafeMath for uint256;
-    
+
     PublicQueue garbageQueue;
     PublicQueue availableImages;
     PublicQueue priorityImages;
@@ -198,13 +198,13 @@ contract Kubercoin {
         }
         if (garbageQueue.length() == 0) {
             imageOwnership[owner].push(images.length);
-            availableImages.push(images.length);
+            enqueueImage(owner, images.length);
             images.push(newImage);
         } else {
             uint256 emptySlot = garbageQueue.pop();
             images[emptySlot] = newImage;
             imageOwnership[owner].push(emptySlot);
-            availableImages.push(emptySlot);
+            enqueueImage(owner, emptySlot);
             locked = false;
         }
     }
