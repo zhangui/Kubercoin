@@ -86,10 +86,13 @@ miner.stop()
 ![image](images/deploy.png)
 
 ![image](images/connectnode.png)
-Then Press Deploy
-![image](images/deploy.png)
-#### 5. Now you can run functions:
+#### 5. Deploy all the contracts:
+![image](images/allcontracts.png)
+![image](images/deploybutton.png)
+
+#### 6. Now you can run functions:
 ![image](images/kubercoin.png)
 
-
+#### 7. Connect other nodes via at Address and copy the address of the contract you wish to connect to:
+![image](images/ataddress.png)
 
