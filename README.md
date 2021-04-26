@@ -1,5 +1,7 @@
 # Kubercoin
 
+Blockchain-based distributed Kubernetes that allows clients to spin up containers on demand
+
 ### Setting up a private ethereum network 
 
 #### 1. Download Ethereum: https://geth.ethereum.org/downloads/
