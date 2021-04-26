@@ -476,11 +476,6 @@ contract Kubercoin {
         updateRating(pinger, false);
     }
 
-    // struct Rating {
-    //     address owner;
-    //     uint256 score;
-    // }
-
     function calculateNewScore(uint256 rating, bool success)
         public view
         returns (uint256)
@@ -489,7 +484,6 @@ contract Kubercoin {
         if (!success) {
             multiplier = 0;
         }
-        // 1000 + (400 * (successes - losses)) / (successes + losses)
         return (rating).mul(uint256(9)).div(10) + multiplier.mul(uint256(1)).div(10);
     }
 
