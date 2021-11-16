@@ -2,6 +2,8 @@
 
 Blockchain-based distributed Kubernetes that allows clients to spin up containers on demand
 
+whitepaper: https://docs.google.com/document/d/10recQiCAcS4kXLgMZz8RB5POt7Hlu2iVy3oPdfRuBPw/edit?usp=sharing
+
 ### Setting up a private ethereum network 
 
 #### 1. Download Ethereum: https://geth.ethereum.org/downloads/
